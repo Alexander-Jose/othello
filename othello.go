@@ -62,7 +62,31 @@ func displayBoardState(state boardstate) {
 }
 
 //Todo: Function that computes possible moves, and their corresponding board states.
-func getPossibleMoves(state boardstate, player Player) {
+func getPossibleMoves(state boardstate, player Player) ([]Move, []boardstate) {
+
+	//Create two slices, so that we can dynamically add possible moves and their resulting states
+	possibleMoves := make([]Move, 60)
+	resultingStates := make([]boardstate, 60)
+
+	//We loop over each tile, checking if it is a possible move.
+	for rowIndex, row := range state {
+		for columnIndex, tileValue := range row {
+			if tileValue != 0 {
+				//Since the tile is not empty, the piece cannot be placed here
+				continue
+			}
+			currentMove := Move(row: byte(rowIndex), column: columnIndex)
+			// Get the resulting state from trying to place a piece at this position.
+			// If the piece cannot be placed, we get nil.
+			resultingState := getStateFromMove()
+			if resultingState != nil {
+
+			}
+
+		}
+	}
+
+	//Return slices of the arrays, so that the whole
 
 }
 

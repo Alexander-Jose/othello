@@ -30,8 +30,13 @@ func displayBoardState(state boardstate) {
 	// Values used to display pieces on a board. The characters correpond to the indexes used in the board state
 	displayCharacters := []rune{'□', '●', '○', '◌', '◌'}
 
+	//Print column labels
+	fmt.Println("  A B C D E F G H")
+
 	//Todo: Add row labels
 	for rowIndex, row := range state {
+		//Print the row labels
+		fmt.Printf("%d ", rowIndex)
 		for columnIndex, itemValue := range row {
 			fmt.Printf("%s ", string(displayCharacters[itemValue]))
 			// Todo: remove. If unused, ignore values

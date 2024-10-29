@@ -11,6 +11,20 @@ import "fmt"
 // 4 represents a possible white move
 type boardstate = [8][8]byte
 
+//A way to represent the player without using magic numbers. Can be used to keep track of the current player.
+type Player = byte
+
+const (
+	WHITE Player = 0
+	BLACK Player = 1
+)
+
+// Stores a move, which contains the location that the player attempts to place a token
+type Move struct {
+	row    byte
+	column byte
+}
+
 // Returns an initial starting state for the board
 func initialState() boardstate {
 	var blankBoard boardstate
@@ -43,9 +57,12 @@ func displayBoardState(state boardstate) {
 			_ = columnIndex
 		}
 		fmt.Println()
-		// Todo: remove. If unused, ignore values
-		_ = rowIndex
 	}
+
+}
+
+//Todo: Function that computes possible moves, and their corresponding board states.
+func getPossibleMoves(state boardstate, player Player) {
 
 }
 

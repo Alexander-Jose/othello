@@ -7,9 +7,12 @@
 
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"strconv"
+)
 
-//A way to represent the player without using magic numbers. Can be used to keep track of the current player.
+// A way to represent the player without using magic numbers. Can be used to keep track of the current player.
 type Color = byte
 
 const (
@@ -30,6 +33,12 @@ type Move struct {
 	column byte
 	color  Color
 }
+
+// Settings
+var debugMode bool = false
+var multiplayer bool = true
+
+//Todo: a way to keep track of which players are human and which are AI
 
 // Returns an initial starting state for the board
 func initialState() boardstate {
@@ -144,7 +153,7 @@ func getStateFromMove(currentMove Move, initialState boardstate) (newState board
 
 }
 
-//Todo: Function that computes possible moves, and their corresponding board states.
+// Todo: Function that computes possible moves, and their corresponding board states.
 func getPossibleMoves(state boardstate, player Color) ([]Move, []boardstate) {
 
 	// Create two slices, so that we can dynamically add possible moves and their resulting states
@@ -178,14 +187,103 @@ func getPossibleMoves(state boardstate, player Color) ([]Move, []boardstate) {
 
 }
 
+// / Waits for user input. If shouldContinue is false, we repeat the prompt.
+func waitAndHandleUserInput(possibleMoves []Move) (movePicked int, shouldContinue bool) {
+	var input string
+	fmt.Scanln(&input)
+	//Test option toggles
+	if input == "1" {
+		multiplayer = !multiplayer
+
+		return -1, false
+	}
+	if input == "2" {
+		debugMode = !debugMode
+		return -1, false
+	}
+
+	//No settings chosen, so we should be making a move.
+	for moveIndex, move := range possibleMoves {
+
+	}
+
+}
+
+func handleTurn(board boardstate, color Color, isAI bool) (resultingBoard boardstate) {
+
+	var input string
+	var colorName = "BLACK"
+	if color == WHITE {
+		colorName = "WHITE"
+	}
+	possibleMoves, resultingStates := getPossibleMoves(board, color)
+
+	for {
+		//Display instructions
+		if isAI {
+			fmt.Println("Type enter to allow the CPU opponent to make a move. Enter 1 to toggle debug mode. Enter 2 to toggle AI. \n%s AI:", colorName)
+		} else {
+			fmt.Printf("Enter a valid tile, in the format (1A) to make a move. Enter 1 to toggle debug mode. Enter 2 to toggle AI.\n%s:", colorName)
+		}
+		//Wait for user input
+		fmt.Scanln(&input)
+		//Handle settings used in both modes.
+		switch input {
+		case "1":
+			break
+		case "2":
+			break
+		default:
+			break
+		}
+
+		if isAI {
+			//Todo: AI player
+			break
+		} else {
+			//Human player
+
+			//Handle any moves
+			for moveIndex, move := range possibleMoves {
+				/// This string is what the user should input if they want to make the move we are currently testing
+				var moveAsString string = strconv.Itoa(int(move.row)) + string(65+move.column)
+				fmt.Println(moveAsString)
+
+				if input == moveAsString {
+					resultingBoard = resultingStates[moveIndex]
+				}
+
+			}
+
+		}
+
+	}
+	//Print resulting board
+	displayBoardState(resultingBoard)
+
+	return resultingBoard
+
+}
+
 func main() {
 	//Todo: When initializing, print rules
 	fmt.Println("")
 
 	board := initialState()
-	displayBoardState(board)
-	getPossibleMoves(board, BLACK)
+	currentPlayer := BLACK
+	for {
+		displayBoardState(board)
 
+		board = handleTurn(board, currentPlayer, false)
+
+		// Switch player
+		if currentPlayer == BLACK {
+			currentPlayer = WHITE
+		} else {
+			currentPlayer = BLACK
+		}
+
+	}
 	//"You are %d\nEnter a valid tile, in the format (1A) to make a move. Enter 1 to enable debug mode. Enter 2 to enable AI."
 
 }

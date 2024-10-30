@@ -76,6 +76,11 @@ func displayBoardState(state boardstate) {
 
 }
 
+func checkVictory(state boardstate) {
+	//Todo: test
+
+}
+
 // Get the resulting state from trying to place a piece at this position.
 // If the piece cannot be placed, isValid will be false, and resultingState has no guarantees of usefulness.
 func getStateFromMove(currentMove Move, initialState boardstate) (newState boardstate, isValid bool) {
@@ -207,6 +212,11 @@ endTurn:
 		} else {
 			fmt.Printf("Enter a valid tile, in the format (1A) to make a move. Enter 1 to toggle debug mode. Enter 2 to toggle AI.\n%s:", colorName)
 		}
+		if len(possibleMoves) == 0 {
+			//User can only forfeit
+			fmt.Println("No moves possible. Press enter to forfeit turn.")
+
+		}
 		//Wait for user input
 		fmt.Scanln(&input)
 		//Handle settings used in both modes.
@@ -224,6 +234,10 @@ endTurn:
 		default:
 			break
 		}
+		if len(possibleMoves) == 0 {
+			//User forfeits turn
+			break endTurn
+		}
 
 		if isAI {
 			//Todo: AI player
@@ -232,7 +246,7 @@ endTurn:
 			//Human player
 
 			//Handle any moves
-			fmt.Println(len(possibleMoves))
+
 			for moveIndex, move := range possibleMoves {
 				/// This string is what the user should input if they want to make the move we are currently testing
 				var moveAsString string = strconv.Itoa(int(move.row)) + string(65+move.column)
@@ -275,6 +289,8 @@ func main() {
 		} else {
 			currentPlayer = BLACK
 		}
+
+		checkVictory(board)
 
 	}
 	//"You are %d\nEnter a valid tile, in the format (1A) to make a move. Enter 1 to enable debug mode. Enter 2 to enable AI."

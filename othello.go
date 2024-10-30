@@ -21,6 +21,14 @@ const (
 	WHITE Color = 2
 )
 
+func getOpponent(player Color) Color {
+	if player == BLACK {
+		return WHITE
+	} else {
+		return BLACK
+	}
+}
+
 // Represents a possible configuration of Othello pieces
 // 0 represents a blank space
 // 1 represents a black piece
@@ -76,9 +84,10 @@ func displayBoardState(state boardstate) {
 
 }
 
-func checkVictory(state boardstate) {
-	//Todo: test
-
+func endGame(state boardstate) {
+	fmt.Println("Game has ended:")
+	//Determine victor
+	//Todo: loop over and count colors.
 }
 
 // Get the resulting state from trying to place a piece at this position.
@@ -213,6 +222,12 @@ endTurn:
 			fmt.Printf("Enter a valid tile, in the format (1A) to make a move. Enter 1 to toggle debug mode. Enter 2 to toggle AI.\n%s:", colorName)
 		}
 		if len(possibleMoves) == 0 {
+			//The User cannot make a move. If their opponent is also unable to make a move, the game ends. Otherwise, they forfeit
+			possibleOpponentMoves, _ := getPossibleMoves(board, getOpponent(color))
+			if len(possibleOpponentMoves) == 0 {
+				//Game has ended.
+				endGame(board)
+			}
 			//User can only forfeit
 			fmt.Println("No moves possible. Press enter to forfeit turn.")
 
@@ -236,7 +251,7 @@ endTurn:
 		}
 		if len(possibleMoves) == 0 {
 			//User forfeits turn
-			break endTurn
+			return board
 		}
 
 		if isAI {
@@ -284,13 +299,7 @@ func main() {
 		board = handleTurn(board, currentPlayer, false)
 
 		// Switch player
-		if currentPlayer == BLACK {
-			currentPlayer = WHITE
-		} else {
-			currentPlayer = BLACK
-		}
-
-		checkVictory(board)
+		currentPlayer = getOpponent(currentPlayer)
 
 	}
 	//"You are %d\nEnter a valid tile, in the format (1A) to make a move. Enter 1 to enable debug mode. Enter 2 to enable AI."

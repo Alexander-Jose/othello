@@ -186,4 +186,6 @@ func main() {
 	displayBoardState(board)
 	getPossibleMoves(board, BLACK)
 
+	//"You are %d\nEnter a valid tile, in the format (1A) to make a move. Enter 1 to enable debug mode. Enter 2 to enable AI."
+
 }

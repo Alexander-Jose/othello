@@ -1,3 +1,10 @@
+///Author: Alexander Jose
+///SID: 10388912
+///10/29/2024
+///Assignment 3: Othello.
+///A program that implements the game of othello, playable by two players, or one player, via the minimax algorithm
+///
+
 package main
 
 import "fmt"

@@ -157,10 +157,11 @@ func getStateFromMove(currentMove Move, initialState boardstate) (newState board
 func getPossibleMoves(state boardstate, player Color) ([]Move, []boardstate) {
 
 	// Create two slices, so that we can dynamically add possible moves and their resulting states
-	// 60 is chosen, as there are only 60 empty spots on an othello board.
+	// We initialize with a size of 60, as there are only 60 empty spots on an othello board.
+	// We make these into 0 length slices, so that we append into allocated space, rather than past it.
 	// While the arrays can be smaller, due to the fact that not all empty spaces are usable, we do not know the precise maximum amount of moves possible on one turn
-	possibleMoves := make([]Move, 60)
-	resultingStates := make([]boardstate, 60)
+	possibleMoves := make([]Move, 60)[:0]
+	resultingStates := make([]boardstate, 60)[:0]
 
 	//We loop over each tile, checking if it is a possible move.
 	for rowIndex, row := range state {
@@ -176,36 +177,15 @@ func getPossibleMoves(state boardstate, player Color) ([]Move, []boardstate) {
 			if isValid {
 				possibleMoves = append(possibleMoves, currentMove)
 				resultingStates = append(resultingStates, resultingState)
-				fmt.Println("Adding to possible moves:")
-				displayBoardState(resultingState)
+				//TOdo: unused debug, remove
+				//fmt.Println("Adding to possible moves:")
+				//displayBoardState(resultingState)
 			}
 
 		}
 	}
 
 	return possibleMoves, resultingStates
-
-}
-
-// / Waits for user input. If shouldContinue is false, we repeat the prompt.
-func waitAndHandleUserInput(possibleMoves []Move) (movePicked int, shouldContinue bool) {
-	var input string
-	fmt.Scanln(&input)
-	//Test option toggles
-	if input == "1" {
-		multiplayer = !multiplayer
-
-		return -1, false
-	}
-	if input == "2" {
-		debugMode = !debugMode
-		return -1, false
-	}
-
-	//No settings chosen, so we should be making a move.
-	for moveIndex, move := range possibleMoves {
-
-	}
 
 }
 
@@ -218,6 +198,8 @@ func handleTurn(board boardstate, color Color, isAI bool) (resultingBoard boards
 	}
 	possibleMoves, resultingStates := getPossibleMoves(board, color)
 
+	//We label the outer loop so that once we make a move, we can end the turn
+endTurn:
 	for {
 		//Display instructions
 		if isAI {
@@ -244,13 +226,16 @@ func handleTurn(board boardstate, color Color, isAI bool) (resultingBoard boards
 			//Human player
 
 			//Handle any moves
+			fmt.Println(len(possibleMoves))
 			for moveIndex, move := range possibleMoves {
 				/// This string is what the user should input if they want to make the move we are currently testing
 				var moveAsString string = strconv.Itoa(int(move.row)) + string(65+move.column)
 				fmt.Println(moveAsString)
 
 				if input == moveAsString {
+					// We have found the move the player made, so we set the state of the board, and exit the loop.
 					resultingBoard = resultingStates[moveIndex]
+					break endTurn
 				}
 
 			}

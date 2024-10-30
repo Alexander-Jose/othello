@@ -217,6 +217,7 @@ endTurn:
 			fmt.Printf("Debug mode: %t\n", debugMode)
 			continue
 		case "2":
+			//Todo: AI setup. Should be one for each color.
 			debugMode = !debugMode
 			fmt.Printf("Debug mode: %t\n", debugMode)
 			continue

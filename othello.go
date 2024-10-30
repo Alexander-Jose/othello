@@ -2,20 +2,20 @@ package main
 
 import "fmt"
 
-// Represents a possible configuration of Othello pieces
-// 0 represents a blank space
-// 1 represents a black piece
-// 2 represents a white piece
-type boardstate = [8][8]byte
-
 //A way to represent the player without using magic numbers. Can be used to keep track of the current player.
 type Color = byte
 
 const (
-	EMPTY Color = 0
+	BLANK Color = 0
 	BLACK Color = 1
 	WHITE Color = 2
 )
+
+// Represents a possible configuration of Othello pieces
+// 0 represents a blank space
+// 1 represents a black piece
+// 2 represents a white piece
+type boardstate = [8][8]Color
 
 // Stores a move, which contains the location that the player attempts to place a token
 type Move struct {
@@ -119,8 +119,8 @@ func getPossibleMoves(state boardstate, player Color) ([]Move, []boardstate) {
 
 	//We loop over each tile, checking if it is a possible move.
 	for rowIndex, row := range state {
-		for columnIndex, tileValue := range row {
-			if tileValue != 0 {
+		for columnIndex, tileColor := range row {
+			if tileColor != BLANK {
 				//Since the tile is not empty, the piece cannot be placed here
 				continue
 			}

@@ -62,12 +62,12 @@ func displayBoardState(state boardstate) {
 
 // Get the resulting state from trying to place a piece at this position.
 // If the piece cannot be placed, isValid will be false, and resultingState has no guarantees of usefulness.
-func getStateFromMove(currentMove Move, initialState boardstate) boardstate {
+func getStateFromMove(currentMove Move, initialState boardstate) (newState boardstate, isValid bool) {
 	//In golang, this will create a copy of the array rather than a reference
-	newState := initialState
+	newState = initialState
 
 	//We will set this flag if any of the directions gives us valid changes
-	isValid := false
+	isValid = false
 
 	// We need to check the tiles in every direction for possible flips.
 	// We do this by picking a direction, iterating over it, and making certain that we encounter only enemy pieces until we encounter one of our own.
@@ -87,24 +87,46 @@ func getStateFromMove(currentMove Move, initialState boardstate) boardstate {
 		currentColumn := currentMove.column
 
 		//Initialize a slice which stores all the changes we need to make. We use a size of 6, as this is the maximum number of tiles in one direction that can be modified on an 8 by 8 board
+		// This stores the location of each tile iterated over before we want to change its color, in the format {{x,y},{x,y}}
 		changes := make([][]byte, 6)
 
 		// We loop until the current location values exceed the size of the array, which is the worst case. If they do, we know the direction does not have flippable tiles.
 		// This loop should usually terminate early, however, either by encountering a blank spot, or a tile of the same color as the color of the tile placed.
 		for (currentRow >= 0 && currentRow < byte(len(initialState))) && (currentColumn >= 0 && currentColumn < byte(len(initialState[0]))) {
-			if newState[currentRow][currentColumn] == 0 {
-				//We have hit a blank space, which means this is not a valid direction
-				continue
-			}
-			if Color(newState[currentRow][currentColumn]) == currentMove.color {
 
+			//Make a step in the correct direction
+			currentRow += byte(rowStep)
+			currentColumn += byte(columnStep)
+
+			//Deal with the tile we hit
+			if newState[currentRow][currentColumn] == BLANK {
+				//We have hit a blank space, which means this is not a valid direction
+				break
 			}
+			if newState[currentRow][currentColumn] == currentMove.color {
+				//This ends our direction
+
+				//If the direction made no changes, this direction is a failure
+				if len(changes) == 0 {
+					break
+				}
+				//Otherwise, apply the changes to the new board, and mark the move as valid
+				for _, changeLocation := range changes {
+					//Set each tile to the color of the move
+					newState[changeLocation[0]][changeLocation[1]] = currentMove.color
+				}
+				isValid = true
+			}
+
+			//In this case, we can assume we have hit the opposite color
+			//We should add the current location to the list of locations that could possibly be changed, and continue
+			changes = append(changes, []byte{currentRow, currentColumn})
 
 		}
 
-		//Swap all of the changed tiles to the correct color. If there are none, such as when there is no final piece of a color, this loop will be skipped.
-
 	}
+
+	return newState, isValid
 
 }
 

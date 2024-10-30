@@ -41,7 +41,7 @@ func initialState() boardstate {
 func displayBoardState(state boardstate) {
 
 	// Values used to display pieces on a board. The characters correpond to the indexes used in the board state
-	displayCharacters := []rune{'□', '●', '○', '◌', '◌'}
+	displayCharacters := []rune{'□', '○', '●'}
 
 	//Print column labels
 	fmt.Println("  A B C D E F G H")
@@ -88,15 +88,16 @@ func getStateFromMove(currentMove Move, initialState boardstate) (newState board
 
 		//Initialize a slice which stores all the changes we need to make. We use a size of 6, as this is the maximum number of tiles in one direction that can be modified on an 8 by 8 board
 		// This stores the location of each tile iterated over before we want to change its color, in the format {{x,y},{x,y}}
-		changes := make([][]byte, 6)
+		// The [:0] makes the length 0, so that we can check if changes is empty.
+		changes := make([][]byte, 6)[:0]
+
+		//Make an initial step in the correct direction. We make our initial step outside the loop so it can check if the location is inside the board, and immediately end if it is not.
+		currentRow += byte(rowStep)
+		currentColumn += byte(columnStep)
 
 		// We loop until the current location values exceed the size of the array, which is the worst case. If they do, we know the direction does not have flippable tiles.
 		// This loop should usually terminate early, however, either by encountering a blank spot, or a tile of the same color as the color of the tile placed.
 		for (currentRow >= 0 && currentRow < byte(len(initialState))) && (currentColumn >= 0 && currentColumn < byte(len(initialState[0]))) {
-
-			//Make a step in the correct direction
-			currentRow += byte(rowStep)
-			currentColumn += byte(columnStep)
 
 			//Deal with the tile we hit
 			if newState[currentRow][currentColumn] == BLANK {
@@ -122,9 +123,15 @@ func getStateFromMove(currentMove Move, initialState boardstate) (newState board
 			//We should add the current location to the list of locations that could possibly be changed, and continue
 			changes = append(changes, []byte{currentRow, currentColumn})
 
+			//Make a step in the correct direction
+			currentRow += byte(rowStep)
+			currentColumn += byte(columnStep)
+
 		}
 
 	}
+	//As we have handled the changes made by placing a piece with this move, we must now place the piece
+	newState[currentMove.row][currentMove.column] = currentMove.color
 
 	return newState, isValid
 
@@ -149,16 +156,18 @@ func getPossibleMoves(state boardstate, player Color) ([]Move, []boardstate) {
 			currentMove := Move{byte(rowIndex), byte(columnIndex), player}
 
 			// Check if we can place a piece at this position, and how that would change the board
-			resultingState, isValid := getStateFromMove(currentMove)
+			resultingState, isValid := getStateFromMove(currentMove, state)
 			if isValid {
 				possibleMoves = append(possibleMoves, currentMove)
 				resultingStates = append(resultingStates, resultingState)
+				fmt.Println("Adding to possible moves:")
+				displayBoardState(resultingState)
 			}
 
 		}
 	}
 
-	//Return slices of the arrays, so that the whole
+	return possibleMoves, resultingStates
 
 }
 
@@ -168,5 +177,6 @@ func main() {
 
 	board := initialState()
 	displayBoardState(board)
+	getPossibleMoves(board, BLACK)
 
 }

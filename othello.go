@@ -212,9 +212,14 @@ endTurn:
 		//Handle settings used in both modes.
 		switch input {
 		case "1":
-			break
+			//Invert the current value, print the result to the user, and start from the top.
+			debugMode = !debugMode
+			fmt.Printf("Debug mode: %t\n", debugMode)
+			continue
 		case "2":
-			break
+			debugMode = !debugMode
+			fmt.Printf("Debug mode: %t\n", debugMode)
+			continue
 		default:
 			break
 		}
@@ -230,21 +235,23 @@ endTurn:
 			for moveIndex, move := range possibleMoves {
 				/// This string is what the user should input if they want to make the move we are currently testing
 				var moveAsString string = strconv.Itoa(int(move.row)) + string(65+move.column)
-				fmt.Println(moveAsString)
 
 				if input == moveAsString {
 					// We have found the move the player made, so we set the state of the board, and exit the loop.
 					resultingBoard = resultingStates[moveIndex]
+					if debugMode {
+						//Todo: pretty-print, prevent color from being printed
+						fmt.Printf("Possible moves: %v\n", possibleMoves[0:moveIndex])
+					}
 					break endTurn
 				}
-
 			}
+			//Attempted move is not in the list of moves
+			fmt.Println("Invalid move!")
 
 		}
 
 	}
-	//Print resulting board
-	displayBoardState(resultingBoard)
 
 	return resultingBoard
 

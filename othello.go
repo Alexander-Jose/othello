@@ -220,7 +220,6 @@ func getPossibleMoves(state boardstate, player Color) ([]Move, []boardstate) {
 
 func handleTurn(board boardstate, color Color) (resultingBoard boardstate) {
 
-	var input string
 	var colorName = "BLACK"
 	if color == WHITE {
 		colorName = "WHITE"
@@ -230,6 +229,7 @@ func handleTurn(board boardstate, color Color) (resultingBoard boardstate) {
 	//We label the outer loop so that once we make a move, we can end the turn
 endTurn:
 	for {
+		var input string
 		isAI := isColorAI(color)
 		//Display instructions
 		if isAI {

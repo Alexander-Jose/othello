@@ -233,7 +233,7 @@ endTurn:
 		isAI := isColorAI(color)
 		//Display instructions
 		if isAI {
-			fmt.Printf("Type enter to allow the CPU opponent to make a move. Enter 1 to toggle debug mode. Enter 2 to toggle AI. \n%s AI:", colorName)
+			fmt.Printf("Type enter to allow the CPU player to make a move. Enter 1 to toggle debug mode. Enter 2 to toggle AI. \n%s AI:", colorName)
 		} else {
 			fmt.Printf("Enter a valid tile, in the format (1A) to make a move. Enter 1 to toggle debug mode. Enter 2 to toggle AI.\n%s:", colorName)
 		}
@@ -259,7 +259,7 @@ endTurn:
 			continue
 		case "2":
 			toggleAI(color)
-			fmt.Printf("AI: %t\n", isAI)
+			fmt.Printf("AI: %t\n", !isAI)
 			continue
 		default:
 			break

@@ -44,7 +44,22 @@ type Move struct {
 
 // Settings
 var debugMode bool = false
-var multiplayer bool = true
+
+// A list that tells us which players have AI toggled
+var aiPlayers []bool = []bool{
+	false, //black
+	false, //white
+}
+
+func toggleAI(color Color) {
+	//Since the colors start at 1, we have to subtract 1 to get the corresponding index in the aiPlayers list
+	index := int(color) - 1
+	aiPlayers[index] = !aiPlayers[index]
+}
+func isColorAI(color Color) bool {
+	index := int(color) - 1
+	return aiPlayers[index]
+}
 
 //Todo: a way to keep track of which players are human and which are AI
 
@@ -203,7 +218,7 @@ func getPossibleMoves(state boardstate, player Color) ([]Move, []boardstate) {
 
 }
 
-func handleTurn(board boardstate, color Color, isAI bool) (resultingBoard boardstate) {
+func handleTurn(board boardstate, color Color) (resultingBoard boardstate) {
 
 	var input string
 	var colorName = "BLACK"
@@ -215,9 +230,10 @@ func handleTurn(board boardstate, color Color, isAI bool) (resultingBoard boards
 	//We label the outer loop so that once we make a move, we can end the turn
 endTurn:
 	for {
+		isAI := isColorAI(color)
 		//Display instructions
 		if isAI {
-			fmt.Println("Type enter to allow the CPU opponent to make a move. Enter 1 to toggle debug mode. Enter 2 to toggle AI. \n%s AI:", colorName)
+			fmt.Printf("Type enter to allow the CPU opponent to make a move. Enter 1 to toggle debug mode. Enter 2 to toggle AI. \n%s AI:", colorName)
 		} else {
 			fmt.Printf("Enter a valid tile, in the format (1A) to make a move. Enter 1 to toggle debug mode. Enter 2 to toggle AI.\n%s:", colorName)
 		}
@@ -242,9 +258,8 @@ endTurn:
 			fmt.Printf("Debug mode: %t\n", debugMode)
 			continue
 		case "2":
-			//Todo: AI setup. Should be one for each color.
-			debugMode = !debugMode
-			fmt.Printf("Debug mode: %t\n", debugMode)
+			toggleAI(color)
+			fmt.Printf("AI: %t\n", isAI)
 			continue
 		default:
 			break
@@ -256,7 +271,8 @@ endTurn:
 
 		if isAI {
 			//Todo: AI player
-			break
+
+			break endTurn
 		} else {
 			//Human player
 
@@ -296,7 +312,7 @@ func main() {
 	for {
 		displayBoardState(board)
 
-		board = handleTurn(board, currentPlayer, false)
+		board = handleTurn(board, currentPlayer)
 
 		// Switch player
 		currentPlayer = getOpponent(currentPlayer)

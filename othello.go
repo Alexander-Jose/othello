@@ -9,6 +9,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"strconv"
 )
 
@@ -100,9 +101,14 @@ func displayBoardState(state boardstate) {
 }
 
 func endGame(state boardstate) {
-	fmt.Println("Game has ended:")
-	//Determine victor
+	fmt.Println("\nGame has ended:")
+	fmt.Println("Final board state:")
+	displayBoardState(state)
+	//Todo: Determine victor
 	//Todo: loop over and count colors.
+	//Display score, number of pieces.
+
+	os.Exit(0)
 }
 
 // Get the resulting state from trying to place a piece at this position.
@@ -218,6 +224,58 @@ func getPossibleMoves(state boardstate, player Color) ([]Move, []boardstate) {
 
 }
 
+// Get the score for a board.
+func getScore(board boardstate, bonusPoints bool) (white int, black int) {
+	for rowIndex, row := range board {
+		for colIndex, tileValue := range row {
+			bonus := 0
+			if bonusPoints {
+				if rowIndex == 0 || rowIndex == 7 {
+					bonus += 1
+				}
+				if colIndex == 0 || colIndex == 7 {
+					//Highly encourage corners.
+					bonus *= 4
+					//
+					bonus += 1
+				}
+			}
+			if tileValue == BLACK {
+				black += 1 + bonus
+			}
+			if tileValue == WHITE {
+				white += 1 + bonus
+
+			}
+		}
+	}
+}
+
+// Outputs the index of the state it chooses.
+// The minimax multiplier is what keeps track of the type of layer this is.
+// If it is a max layer, it will be 1, if a min layer, it will be -1
+func minimax(layerState boardstate, depth int, minimaxMultiplier int, currentPlayer Color) (heuristicValue int) {
+	if depth == 0 {
+		blackScore, whiteScore := getScore(layerState, true)
+		//Todo: needs to be changed based on which player is doing the maximizing.
+		//Check if this is correct. If the layer is maximizing, we should get black-white. Otherwise, white-black.
+		//Needs to give correct heuristic if the player is white, however.
+		if currentPlayer == WHITE {
+			//If the current player is minimizing, they are our opponent. Invert the score.
+			//Todo: simplify. Either flip when player, and flip with minimax mult and then return, or just do basic, with branches.
+			heuristicValue = (whiteScore - blackScore) * minimaxMultiplier
+		} else {
+			heuristicValue = (blackScore - whiteScore) * minimaxMultiplier
+		}
+
+		return
+	}
+
+	possibleMoves, resultingBoards := getPossibleMoves(layerState, currentPlayer)
+	//Since we invert the
+
+}
+
 func handleTurn(board boardstate, color Color) (resultingBoard boardstate) {
 
 	var colorName = "BLACK"
@@ -271,6 +329,10 @@ endTurn:
 
 		if isAI {
 			//Todo: AI player
+			//AI move. Currently hardcoded.
+			selectedMove := 0
+
+			resultingBoard = resultingStates[selectedMove]
 
 			break endTurn
 		} else {

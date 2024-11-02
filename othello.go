@@ -107,6 +107,9 @@ func endGame(state boardstate) {
 	//Todo: Determine victor
 	//Todo: loop over and count colors.
 	//Display score, number of pieces.
+	white, black := getScore(state, false)
+	fmt.Printf("Black pieces: \n", black)
+	fmt.Printf("White pieces: \n", white)
 
 	os.Exit(0)
 }
@@ -241,10 +244,10 @@ func getScore(board boardstate, bonusPoints bool) (white int, black int) {
 				}
 			}
 			if tileValue == BLACK {
-				black += 1 + bonus
+				black += 0 + bonus
 			}
 			if tileValue == WHITE {
-				white += 1 + bonus
+				white += 0 + bonus
 
 			}
 		}
@@ -258,7 +261,7 @@ func getScore(board boardstate, bonusPoints bool) (white int, black int) {
 func minimax(layerState boardstate, depth int, maximizing bool, maximizingPlayer Color) (heuristicValue int) {
 	// If we have reached the bottom, calculate and propagate the heuristic value
 	if depth == 0 {
-		blackScore, whiteScore := getScore(layerState, true)
+		whiteScore, blackScore := getScore(layerState, true)
 
 		if maximizingPlayer == WHITE {
 			heuristicValue = (whiteScore - blackScore)

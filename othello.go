@@ -249,30 +249,48 @@ func getScore(board boardstate, bonusPoints bool) (white int, black int) {
 			}
 		}
 	}
+	return
 }
 
 // Outputs the index of the state it chooses.
 // The minimax multiplier is what keeps track of the type of layer this is.
 // If it is a max layer, it will be 1, if a min layer, it will be -1
-func minimax(layerState boardstate, depth int, minimaxMultiplier int, currentPlayer Color) (heuristicValue int) {
+func minimax(layerState boardstate, depth int, maximizing bool, maximizingPlayer Color) (heuristicValue int) {
+	// If we have reached the bottom, calculate and propagate the heuristic value
 	if depth == 0 {
 		blackScore, whiteScore := getScore(layerState, true)
-		//Todo: needs to be changed based on which player is doing the maximizing.
-		//Check if this is correct. If the layer is maximizing, we should get black-white. Otherwise, white-black.
-		//Needs to give correct heuristic if the player is white, however.
-		if currentPlayer == WHITE {
-			//If the current player is minimizing, they are our opponent. Invert the score.
-			//Todo: simplify. Either flip when player, and flip with minimax mult and then return, or just do basic, with branches.
-			heuristicValue = (whiteScore - blackScore) * minimaxMultiplier
+
+		if maximizingPlayer == WHITE {
+			heuristicValue = (whiteScore - blackScore)
 		} else {
-			heuristicValue = (blackScore - whiteScore) * minimaxMultiplier
+			heuristicValue = (blackScore - whiteScore)
 		}
 
 		return
 	}
+	currentPlayer := maximizingPlayer
+	if !maximizing {
+		currentPlayer = getOpponent(maximizingPlayer)
+	}
 
 	possibleMoves, resultingBoards := getPossibleMoves(layerState, currentPlayer)
-	//Since we invert the
+
+	if maximizing {
+		//We start with a maximum value that is under what we could get as a maximum, so we can compare if numbers are bigger than it, and use those.
+		heuristicValue = -10000
+
+		for moveIndex, _ := range possibleMoves {
+			heuristicValue = max(heuristicValue, minimax(resultingBoards[moveIndex], depth-1, !maximizing, maximizingPlayer))
+		}
+	} else {
+		//Since we are minimizing, we start with a number larger than any possible number
+		heuristicValue = 10000
+
+		for moveIndex, _ := range possibleMoves {
+			heuristicValue = min(heuristicValue, minimax(resultingBoards[moveIndex], depth-1, !maximizing, maximizingPlayer))
+		}
+	}
+	return
 
 }
 
@@ -330,9 +348,19 @@ endTurn:
 		if isAI {
 			//Todo: AI player
 			//AI move. Currently hardcoded.
-			selectedMove := 0
+			bestMove := 0
+			bestMoveWeight := 0
 
-			resultingBoard = resultingStates[selectedMove]
+			//Run minimax for each move the current player can make. Once it is complete, take the best one.
+			for moveIndex, _ := range possibleMoves {
+				moveWeight := minimax(resultingStates[moveIndex], 3, false, color)
+				if moveWeight > bestMoveWeight {
+					bestMove = moveIndex
+					bestMoveWeight = moveWeight
+				}
+			}
+
+			resultingBoard = resultingStates[bestMove]
 
 			break endTurn
 		} else {
@@ -380,6 +408,4 @@ func main() {
 		currentPlayer = getOpponent(currentPlayer)
 
 	}
-	//"You are %d\nEnter a valid tile, in the format (1A) to make a move. Enter 1 to enable debug mode. Enter 2 to enable AI."
-
 }

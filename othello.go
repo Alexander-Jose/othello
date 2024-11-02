@@ -353,7 +353,7 @@ endTurn:
 
 			//Run minimax for each move the current player can make. Once it is complete, take the best one.
 			for moveIndex, _ := range possibleMoves {
-				moveWeight := minimax(resultingStates[moveIndex], 3, false, color)
+				moveWeight := minimax(resultingStates[moveIndex], 5, false, color)
 				if moveWeight > bestMoveWeight {
 					bestMove = moveIndex
 					bestMoveWeight = moveWeight
@@ -365,7 +365,9 @@ endTurn:
 			break endTurn
 		} else {
 			//Human player
+			resultingBoard = resultingStates[0]
 
+			break endTurn
 			//Handle any moves
 
 			for moveIndex, move := range possibleMoves {

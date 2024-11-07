@@ -9,7 +9,6 @@ package main
 
 import (
 	"fmt"
-	"math/rand"
 	"os"
 	"strconv"
 )
@@ -265,8 +264,55 @@ func getScore(board boardstate, bonusPoints bool) (white int, black int) {
 	return
 }
 
+func minimax(board boardstate, depth int, maximize bool, maximizingPlayer Color) (heuristicValue int, chosenBoard boardstate, statesExamined int) {
+	//We initialize at 1, so we count the current state
+	statesExamined = 1
+	//We default to no move. If this is actually used, we are either in the base case, where it does not matter, or we must forfeit
+	chosenBoard = board
+	//Base case
+	if depth == 0 {
+		whiteScore, blackScore := getScore(board, true)
+		heuristicValue = (whiteScore - blackScore)
+		//If player is black, we want to optimize for black score instead
+		if maximizingPlayer == BLACK {
+			heuristicValue = -heuristicValue
+		}
+		return
+	}
+	currentPlayer := maximizingPlayer
+	if !maximize {
+		currentPlayer = getOpponent(maximizingPlayer)
+	}
+	possibleMoves, resultingBoards := getPossibleMoves(board, currentPlayer)
+
+	heuristicValue = 10000000000
+	if maximize {
+		heuristicValue *= -1
+	}
+
+	for moveIndex, _ := range possibleMoves {
+		possibleHeuristic, _, moveStatesExamined := minimax(resultingBoards[moveIndex], depth-1, !maximize, maximizingPlayer)
+		statesExamined += moveStatesExamined
+		if maximize {
+			if possibleHeuristic > heuristicValue {
+				chosenBoard = resultingBoards[moveIndex]
+				heuristicValue = possibleHeuristic
+			}
+		} else {
+			if possibleHeuristic < heuristicValue {
+				chosenBoard = resultingBoards[moveIndex]
+				heuristicValue = possibleHeuristic
+			}
+		}
+	}
+
+	return
+
+}
+
+/*
 // Outputs the chosen heuristic value of the layer, as well as the number of states examined
-func minimax(layerState boardstate, depth int, maximizing bool, maximizingPlayer Color) (heuristicValue int, statesExamined int) {
+func minimax_full(layerState boardstate, depth int, maximizing bool, maximizingPlayer Color) (heuristicValue int, statesExamined int) {
 	statesExamined = 1 //We initialize at 1, so we count the current state
 	// If we have reached the bottom, calculate and propagate the heuristic value
 	if depth == 0 {
@@ -301,14 +347,13 @@ func minimax(layerState boardstate, depth int, maximizing bool, maximizingPlayer
 		}
 
 		if debugMode {
-			fmt.Println("Examined move", move.asString(), "with heuristic", heuristicValue)
+			fmt.Println("Examined move", move.asString(), "with heuristic", heuristicValue, "maximizing layer:", maximizing)
 		}
-
 	}
 
 	return
 
-}
+}*/
 
 func handleTurn(board boardstate, color Color) (resultingBoard boardstate) {
 
@@ -368,39 +413,20 @@ endTurn:
 
 		if isAI {
 			//Todo: AI player
-			bestMove := 0
-			bestMoveWeight := 0
-			totalMovesExamined := 0
 			//Run minimax for each move the current player can make. Once it is complete, take the best one.
-			for moveIndex, move := range possibleMoves {
-
-				if debugMode {
-					fmt.Println("Examining possible move", move.asString(), ":")
-				}
-				moveWeight, movesExamined := minimax(resultingStates[moveIndex], 1, false, color)
-				if moveWeight > bestMoveWeight {
-					bestMove = moveIndex
-					bestMoveWeight = moveWeight
-				}
-				totalMovesExamined += movesExamined
-
-				if debugMode {
-					fmt.Println("Possible move", move.asString(), "has heuristic", moveWeight)
-				}
-			}
-			fmt.Println("Examined ", totalMovesExamined, "moves")
-
-			resultingBoard = resultingStates[bestMove]
+			_, chosenBoard, totalMovesExamined := minimax(board, 4, true, color)
+			fmt.Println("Total moves examined:", totalMovesExamined)
+			resultingBoard = chosenBoard
 
 			break endTurn
 		} else {
 			//Human player
 			//Todo: Policy. usercontrolled, random, first, minimax
-			maxOption := len(resultingStates) - 1
-			if maxOption > -1 {
-				resultingBoard = resultingStates[rand.Intn(maxOption)]
-			}
-			break endTurn
+			//maxOption := len(resultingStates) - 1
+			//if maxOption > -1 {
+			//	resultingBoard = resultingStates[rand.Intn(maxOption)]
+			//}
+			//break endTurn
 			//Handle any moves
 
 			for moveIndex, move := range possibleMoves {

@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 )
 
 // A way to represent the player without using magic numbers. Can be used to keep track of the current player.
@@ -90,7 +91,7 @@ func initialState() boardstate {
 func displayBoardState(state boardstate) {
 
 	// Values used to display pieces on a board. The characters correpond to the indexes used in the board state
-	displayCharacters := []rune{'□', '○', '●'}
+	displayCharacters := []rune{'·', '○', '●'}
 
 	//Print column labels
 	fmt.Println("  A B C D E F G H")
@@ -290,8 +291,11 @@ func minimax(board boardstate, depth int, maximize bool, maximizingPlayer Color)
 		heuristicValue *= -1
 	}
 
-	for moveIndex, _ := range possibleMoves {
+	for moveIndex, move := range possibleMoves {
 		possibleHeuristic, _, moveStatesExamined := minimax(resultingBoards[moveIndex], depth-1, !maximize, maximizingPlayer)
+		if debugMode {
+			fmt.Println(strings.Repeat("	", depth), "Considering move", move.asString(), "with heuristic of ", possibleHeuristic)
+		}
 		statesExamined += moveStatesExamined
 		if maximize {
 			if possibleHeuristic > heuristicValue {

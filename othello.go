@@ -53,6 +53,7 @@ func (move Move) invertedString() string {
 
 // Settings
 var debugMode bool = false
+var verbose bool = false
 
 // A list that tells us which players have AI toggled
 var aiPlayers []bool = []bool{
@@ -271,11 +272,13 @@ func minimax(layerState boardstate, depth int, maximizing bool, maximizingPlayer
 		whiteScore, blackScore := getScore(layerState, true)
 		//Todo: make better
 		if maximizingPlayer == WHITE {
-			heuristicValue = 100 * (whiteScore - blackScore) / (whiteScore + blackScore)
+			heuristicValue = (whiteScore - blackScore)
 		} else {
-			heuristicValue = 100 * (blackScore - whiteScore) / (whiteScore + blackScore)
+			heuristicValue = (blackScore - whiteScore)
 		}
-
+		if debugMode && verbose {
+			fmt.Println("Bottom layer: white:", whiteScore, "black:", blackScore, "heuristic:", heuristicValue)
+		}
 		return
 	}
 	currentPlayer := maximizingPlayer
@@ -366,13 +369,21 @@ endTurn:
 			bestMoveWeight := 0
 			totalMovesExamined := 0
 			//Run minimax for each move the current player can make. Once it is complete, take the best one.
-			for moveIndex, _ := range possibleMoves {
+			for moveIndex, move := range possibleMoves {
+
+				if debugMode {
+					fmt.Println("Examining possible move", move.asString(), ":")
+				}
 				moveWeight, movesExamined := minimax(resultingStates[moveIndex], 1, false, color)
 				if moveWeight > bestMoveWeight {
 					bestMove = moveIndex
 					bestMoveWeight = moveWeight
 				}
 				totalMovesExamined += movesExamined
+
+				if debugMode {
+					fmt.Println("Possible move", move.asString(), "has heuristic", moveWeight)
+				}
 			}
 			fmt.Println("Examined ", totalMovesExamined, "moves")
 

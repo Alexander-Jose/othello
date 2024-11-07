@@ -53,13 +53,14 @@ func (move Move) invertedString() string {
 
 // Settings
 var debugMode bool = false
-var verbose bool = false
 
 // A list that tells us which players have AI toggled
 var aiPlayers []bool = []bool{
 	false, //black
 	false, //white
 }
+
+var abPruning bool = false
 
 func toggleAI(color Color) {
 	//Since the colors start at 1, we have to subtract 1 to get the corresponding index in the aiPlayers list
@@ -276,9 +277,6 @@ func minimax(layerState boardstate, depth int, maximizing bool, maximizingPlayer
 		} else {
 			heuristicValue = (blackScore - whiteScore)
 		}
-		if debugMode && verbose {
-			fmt.Println("Bottom layer: white:", whiteScore, "black:", blackScore, "heuristic:", heuristicValue)
-		}
 		return
 	}
 	currentPlayer := maximizingPlayer
@@ -327,9 +325,9 @@ endTurn:
 		isAI := isColorAI(color)
 		//Display instructions
 		if isAI {
-			fmt.Printf("Type enter to allow the CPU player to make a move. Enter 1 to toggle debug mode. Enter 2 to toggle AI. \n%s AI:", colorName)
+			fmt.Printf("Type enter to allow the CPU player to make a move. Enter 1 to toggle debug mode. Enter 2 to toggle AI. Enter 3 to toggle alpha-beta pruning\n%s AI:", colorName)
 		} else {
-			fmt.Printf("Enter a valid tile, in the format (1A) to make a move. Enter 1 to toggle debug mode. Enter 2 to toggle AI.\n%s:", colorName)
+			fmt.Printf("Enter a valid tile, in the format (1A) to make a move. Enter 1 to toggle debug mode. Enter 2 to toggle AI. Enter 3 to toggle alpha-beta pruning\n%s:", colorName)
 		}
 		if len(possibleMoves) == 0 {
 			//The User cannot make a move. If their opponent is also unable to make a move, the game ends. Otherwise, they forfeit
@@ -354,6 +352,11 @@ endTurn:
 		case "2":
 			toggleAI(color)
 			fmt.Printf("AI: %t\n", !isAI)
+			continue
+		case "3":
+			//Invert the current value, print the result to the user, and start from the top.
+			abPruning = !abPruning
+			fmt.Printf("Alpha-beta pruning: %t\n", abPruning)
 			continue
 		default:
 			break

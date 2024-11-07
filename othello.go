@@ -2,13 +2,14 @@
 ///SID: 10388912
 ///10/29/2024
 ///Assignment 3: Othello.
-///A program that implements the game of othello, playable by two players, or one player, via the minimax algorithm
+///A program that implements the game of othello, playable by two players, with the players being either a human or an AI using the minimax algorithm
 ///
 
 package main
 
 import (
 	"fmt"
+	"math/rand"
 	"os"
 	"strconv"
 )
@@ -41,6 +42,13 @@ type Move struct {
 	row    byte
 	column byte
 	color  Color
+}
+
+func (move Move) asString() string {
+	return strconv.Itoa(int(move.row)) + string(65+move.column)
+}
+func (move Move) invertedString() string {
+	return string(65+move.column) + strconv.Itoa(int(move.row))
 }
 
 // Settings
@@ -108,8 +116,8 @@ func endGame(state boardstate) {
 	//Todo: loop over and count colors.
 	//Display score, number of pieces.
 	white, black := getScore(state, false)
-	fmt.Printf("Black pieces: \n", black)
-	fmt.Printf("White pieces: \n", white)
+	fmt.Printf("Black pieces: %d\n", black)
+	fmt.Printf("White pieces: %d\n", white)
 
 	os.Exit(0)
 }
@@ -238,16 +246,16 @@ func getScore(board boardstate, bonusPoints bool) (white int, black int) {
 				}
 				if colIndex == 0 || colIndex == 7 {
 					//Highly encourage corners.
-					bonus *= 4
+					bonus *= 10
 					//
 					bonus += 1
 				}
 			}
 			if tileValue == BLACK {
-				black += 0 + bonus
+				black += 1 + bonus
 			}
 			if tileValue == WHITE {
-				white += 0 + bonus
+				white += 1 + bonus
 
 			}
 		}
@@ -255,18 +263,17 @@ func getScore(board boardstate, bonusPoints bool) (white int, black int) {
 	return
 }
 
-// Outputs the index of the state it chooses.
-// The minimax multiplier is what keeps track of the type of layer this is.
-// If it is a max layer, it will be 1, if a min layer, it will be -1
-func minimax(layerState boardstate, depth int, maximizing bool, maximizingPlayer Color) (heuristicValue int) {
+// Outputs the chosen heuristic value of the layer, as well as the number of states examined
+func minimax(layerState boardstate, depth int, maximizing bool, maximizingPlayer Color) (heuristicValue int, statesExamined int) {
+	statesExamined = 1 //We initialize at 1, so we count the current state
 	// If we have reached the bottom, calculate and propagate the heuristic value
 	if depth == 0 {
 		whiteScore, blackScore := getScore(layerState, true)
-
+		//Todo: make better
 		if maximizingPlayer == WHITE {
-			heuristicValue = (whiteScore - blackScore)
+			heuristicValue = 100 * (whiteScore - blackScore) / (whiteScore + blackScore)
 		} else {
-			heuristicValue = (blackScore - whiteScore)
+			heuristicValue = 100 * (blackScore - whiteScore) / (whiteScore + blackScore)
 		}
 
 		return
@@ -277,22 +284,27 @@ func minimax(layerState boardstate, depth int, maximizing bool, maximizingPlayer
 	}
 
 	possibleMoves, resultingBoards := getPossibleMoves(layerState, currentPlayer)
-
-	if maximizing {
-		//We start with a maximum value that is under what we could get as a maximum, so we can compare if numbers are bigger than it, and use those.
-		heuristicValue = -10000
-
-		for moveIndex, _ := range possibleMoves {
-			heuristicValue = max(heuristicValue, minimax(resultingBoards[moveIndex], depth-1, !maximizing, maximizingPlayer))
+	for moveIndex, move := range possibleMoves {
+		if maximizing {
+			//We start with a maximum value that is under what we could get as a maximum, so we can compare if numbers are bigger than it, and use those.
+			heuristicValue = -10000000
+			childHeuristic, childExamined := minimax(resultingBoards[moveIndex], depth-1, !maximizing, maximizingPlayer)
+			heuristicValue = max(heuristicValue, childHeuristic)
+			statesExamined += childExamined
+		} else {
+			//Since we are minimizing, we start with a number larger than any possible number
+			heuristicValue = 100000000
+			childHeuristic, childExamined := minimax(resultingBoards[moveIndex], depth-1, !maximizing, maximizingPlayer)
+			heuristicValue = min(heuristicValue, childHeuristic)
+			statesExamined += childExamined
 		}
-	} else {
-		//Since we are minimizing, we start with a number larger than any possible number
-		heuristicValue = 10000
 
-		for moveIndex, _ := range possibleMoves {
-			heuristicValue = min(heuristicValue, minimax(resultingBoards[moveIndex], depth-1, !maximizing, maximizingPlayer))
+		if debugMode {
+			fmt.Println("Examined move", move.asString(), "with heuristic", heuristicValue)
 		}
+
 	}
+
 	return
 
 }
@@ -350,34 +362,36 @@ endTurn:
 
 		if isAI {
 			//Todo: AI player
-			//AI move. Currently hardcoded.
 			bestMove := 0
 			bestMoveWeight := 0
-
+			totalMovesExamined := 0
 			//Run minimax for each move the current player can make. Once it is complete, take the best one.
 			for moveIndex, _ := range possibleMoves {
-				moveWeight := minimax(resultingStates[moveIndex], 5, false, color)
+				moveWeight, movesExamined := minimax(resultingStates[moveIndex], 1, false, color)
 				if moveWeight > bestMoveWeight {
 					bestMove = moveIndex
 					bestMoveWeight = moveWeight
 				}
+				totalMovesExamined += movesExamined
 			}
+			fmt.Println("Examined ", totalMovesExamined, "moves")
 
 			resultingBoard = resultingStates[bestMove]
 
 			break endTurn
 		} else {
 			//Human player
-			resultingBoard = resultingStates[0]
-
+			//Todo: Policy. usercontrolled, random, first, minimax
+			maxOption := len(resultingStates) - 1
+			if maxOption > -1 {
+				resultingBoard = resultingStates[rand.Intn(maxOption)]
+			}
 			break endTurn
 			//Handle any moves
 
 			for moveIndex, move := range possibleMoves {
-				/// This string is what the user should input if they want to make the move we are currently testing
-				var moveAsString string = strconv.Itoa(int(move.row)) + string(65+move.column)
-
-				if input == moveAsString {
+				/// Check if the user has input the move we are currently testing
+				if input == move.asString() || input == move.invertedString() {
 					// We have found the move the player made, so we set the state of the board, and exit the loop.
 					resultingBoard = resultingStates[moveIndex]
 					if debugMode {

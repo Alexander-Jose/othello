@@ -49,7 +49,9 @@ func (move Move) invertedString() string {
 
 // Settings
 var debugMode bool = false
-var debugIndent = 0
+
+// The max depth for minimax to search
+var maxDepth int = 6
 
 // A list that tells us which players have AI toggled
 var aiPlayers []bool = []bool{
@@ -328,9 +330,9 @@ endTurn:
 		isAI := isColorAI(color)
 		//Display instructions
 		if isAI {
-			fmt.Printf("Type enter to allow the CPU player to make a move. Enter 1 to toggle debug mode. Enter 2 to toggle AI. Enter 3 to toggle alpha-beta pruning\n%s AI:", colorName)
+			fmt.Printf("Type enter to allow the CPU player to make a move. Enter 1 to toggle debug mode. Enter 2 to toggle AI. Enter 3 to toggle alpha-beta pruning. Enter 4 to set AI search depth\n%s AI:", colorName)
 		} else {
-			fmt.Printf("Enter a valid tile, in the format (1A) to make a move. Enter 1 to toggle debug mode. Enter 2 to toggle AI. Enter 3 to toggle alpha-beta pruning\n%s:", colorName)
+			fmt.Printf("Enter a valid tile, in the format (1A) to make a move. Enter 1 to toggle debug mode. Enter 2 to toggle AI. Enter 3 to toggle alpha-beta pruning. Enter 4 to set AI search depth\n%s:", colorName)
 		}
 		if len(possibleMoves) == 0 {
 			//The User cannot make a move. If their opponent is also unable to make a move, the game ends. Otherwise, they forfeit
@@ -361,6 +363,13 @@ endTurn:
 			abPruning = !abPruning
 			fmt.Printf("Alpha-beta pruning: %t\n", abPruning)
 			continue
+		case "4":
+			fmt.Println("Current max depth:", maxDepth)
+			//Invert the current value, print the result to the user, and start from the top.
+			fmt.Println("Type an integer for a new max depth")
+			fmt.Scanf("%d", &maxDepth)
+			fmt.Println("New max depth:", maxDepth)
+			continue
 		default:
 			break
 		}
@@ -371,7 +380,7 @@ endTurn:
 
 		if isAI {
 			//Run minimax for each move the current player can make. Once it is complete, take the best one.
-			_, chosenBoard, totalMovesExamined := minimax(board, 4, true, color, -1000000, 1000000)
+			_, chosenBoard, totalMovesExamined := minimax(board, maxDepth, true, color, -1000000, 1000000)
 			fmt.Println("Total moves examined:", totalMovesExamined)
 			resultingBoard = chosenBoard
 

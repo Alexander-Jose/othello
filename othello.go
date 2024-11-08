@@ -11,7 +11,6 @@ import (
 	"fmt"
 	"os"
 	"strconv"
-	"strings"
 )
 
 // A way to represent the player without using magic numbers. Can be used to keep track of the current player.
@@ -265,7 +264,7 @@ func getScore(board boardstate, bonusPoints bool) (white int, black int) {
 	return
 }
 
-func minimax(board boardstate, depth int, maximize bool, maximizingPlayer Color) (heuristicValue int, chosenBoard boardstate, statesExamined int) {
+func minimax(board boardstate, depth int, maximize bool, maximizingPlayer Color, alpha int, beta int) (heuristicValue int, chosenBoard boardstate, statesExamined int) {
 	//We initialize at 1, so we count the current state
 	statesExamined = 1
 	//We default to no move. If this is actually used, we are either in the base case, where it does not matter, or we must forfeit
@@ -294,9 +293,9 @@ func minimax(board boardstate, depth int, maximize bool, maximizingPlayer Color)
 	}
 
 	for moveIndex, move := range possibleMoves {
-		possibleHeuristic, _, moveStatesExamined := minimax(resultingBoards[moveIndex], depth-1, !maximize, maximizingPlayer)
+		possibleHeuristic, _, moveStatesExamined := minimax(resultingBoards[moveIndex], depth-1, !maximize, maximizingPlayer, alpha, beta)
 		if debugMode {
-			fmt.Println(strings.Repeat("	", depth), "Considering move", move.asString(), "with heuristic of ", possibleHeuristic)
+			fmt.Println("Depth:", depth, "Considering move", move.asString(), "with heuristic of ", possibleHeuristic)
 		}
 		statesExamined += moveStatesExamined
 		if maximize {
@@ -304,10 +303,22 @@ func minimax(board boardstate, depth int, maximize bool, maximizingPlayer Color)
 				chosenBoard = resultingBoards[moveIndex]
 				heuristicValue = possibleHeuristic
 			}
+			if abPruning {
+				alpha = max(alpha, heuristicValue)
+				if beta <= alpha {
+					break
+				}
+			}
 		} else {
 			if possibleHeuristic < heuristicValue {
 				chosenBoard = resultingBoards[moveIndex]
 				heuristicValue = possibleHeuristic
+			}
+			if abPruning {
+				beta = min(beta, heuristicValue)
+				if beta <= alpha {
+					break
+				}
 			}
 		}
 	}
@@ -420,7 +431,7 @@ endTurn:
 		if isAI {
 			//Todo: AI player
 			//Run minimax for each move the current player can make. Once it is complete, take the best one.
-			_, chosenBoard, totalMovesExamined := minimax(board, 4, true, color)
+			_, chosenBoard, totalMovesExamined := minimax(board, 4, true, color, -1000000, 1000000)
 			fmt.Println("Total moves examined:", totalMovesExamined)
 			resultingBoard = chosenBoard
 

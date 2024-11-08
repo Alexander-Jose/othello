@@ -3,7 +3,6 @@
 ///10/29/2024
 ///Assignment 3: Othello.
 ///A program that implements the game of othello, playable by two players, with the players being either a human or an AI using the minimax algorithm
-///
 
 package main
 
@@ -16,6 +15,7 @@ import (
 // A way to represent the player without using magic numbers. Can be used to keep track of the current player.
 type Color = byte
 
+// Represents the players and pieces
 const (
 	BLANK Color = 0
 	BLACK Color = 1
@@ -30,13 +30,10 @@ func getOpponent(player Color) Color {
 	}
 }
 
-// Represents a possible configuration of Othello pieces
-// 0 represents a blank space
-// 1 represents a black piece
-// 2 represents a white piece
+// Represents a possible configuration of Othello pieces by color
 type boardstate = [8][8]Color
 
-// Stores a move, which contains the location that the player attempts to place a token
+// Stores a move, which contains the location that the player attempts to place a token, as well as the color of the player
 type Move struct {
 	row    byte
 	column byte
@@ -52,6 +49,7 @@ func (move Move) invertedString() string {
 
 // Settings
 var debugMode bool = false
+var debugIndent = 0
 
 // A list that tells us which players have AI toggled
 var aiPlayers []bool = []bool{
@@ -70,8 +68,6 @@ func isColorAI(color Color) bool {
 	index := int(color) - 1
 	return aiPlayers[index]
 }
-
-//Todo: a way to keep track of which players are human and which are AI
 
 // Returns an initial starting state for the board
 func initialState() boardstate {
@@ -95,14 +91,11 @@ func displayBoardState(state boardstate) {
 	//Print column labels
 	fmt.Println("  A B C D E F G H")
 
-	//Todo: Add row labels
 	for rowIndex, row := range state {
 		//Print the row labels
 		fmt.Printf("%d ", rowIndex)
-		for columnIndex, itemValue := range row {
+		for _, itemValue := range row {
 			fmt.Printf("%s ", string(displayCharacters[itemValue]))
-			// Todo: remove. If unused, ignore values
-			_ = columnIndex
 		}
 		fmt.Println()
 	}
@@ -113,8 +106,6 @@ func endGame(state boardstate) {
 	fmt.Println("\nGame has ended:")
 	fmt.Println("Final board state:")
 	displayBoardState(state)
-	//Todo: Determine victor
-	//Todo: loop over and count colors.
 	//Display score, number of pieces.
 	white, black := getScore(state, false)
 	fmt.Printf("Black pieces: %d\n", black)
@@ -136,7 +127,6 @@ func getStateFromMove(currentMove Move, initialState boardstate) (newState board
 	// We do this by picking a direction, iterating over it, and making certain that we encounter only enemy pieces until we encounter one of our own.
 	// This section concerns picking a direction.
 	// We use rowStep and columnStep to be the amount we step in each direction, until we hit a final tile.
-	//Todo: step backwards, flipping tiles?
 
 	for direction := 0; direction < 9; direction++ {
 
@@ -200,7 +190,6 @@ func getStateFromMove(currentMove Move, initialState boardstate) (newState board
 
 }
 
-// Todo: Function that computes possible moves, and their corresponding board states.
 func getPossibleMoves(state boardstate, player Color) ([]Move, []boardstate) {
 
 	// Create two slices, so that we can dynamically add possible moves and their resulting states
@@ -224,9 +213,6 @@ func getPossibleMoves(state boardstate, player Color) ([]Move, []boardstate) {
 			if isValid {
 				possibleMoves = append(possibleMoves, currentMove)
 				resultingStates = append(resultingStates, resultingState)
-				//TOdo: unused debug, remove
-				//fmt.Println("Adding to possible moves:")
-				//displayBoardState(resultingState)
 			}
 
 		}
@@ -327,51 +313,6 @@ func minimax(board boardstate, depth int, maximize bool, maximizingPlayer Color,
 
 }
 
-/*
-// Outputs the chosen heuristic value of the layer, as well as the number of states examined
-func minimax_full(layerState boardstate, depth int, maximizing bool, maximizingPlayer Color) (heuristicValue int, statesExamined int) {
-	statesExamined = 1 //We initialize at 1, so we count the current state
-	// If we have reached the bottom, calculate and propagate the heuristic value
-	if depth == 0 {
-		whiteScore, blackScore := getScore(layerState, true)
-		//Todo: make better
-		if maximizingPlayer == WHITE {
-			heuristicValue = (whiteScore - blackScore)
-		} else {
-			heuristicValue = (blackScore - whiteScore)
-		}
-		return
-	}
-	currentPlayer := maximizingPlayer
-	if !maximizing {
-		currentPlayer = getOpponent(maximizingPlayer)
-	}
-
-	possibleMoves, resultingBoards := getPossibleMoves(layerState, currentPlayer)
-	for moveIndex, move := range possibleMoves {
-		if maximizing {
-			//We start with a maximum value that is under what we could get as a maximum, so we can compare if numbers are bigger than it, and use those.
-			heuristicValue = -10000000
-			childHeuristic, childExamined := minimax(resultingBoards[moveIndex], depth-1, !maximizing, maximizingPlayer)
-			heuristicValue = max(heuristicValue, childHeuristic)
-			statesExamined += childExamined
-		} else {
-			//Since we are minimizing, we start with a number larger than any possible number
-			heuristicValue = 100000000
-			childHeuristic, childExamined := minimax(resultingBoards[moveIndex], depth-1, !maximizing, maximizingPlayer)
-			heuristicValue = min(heuristicValue, childHeuristic)
-			statesExamined += childExamined
-		}
-
-		if debugMode {
-			fmt.Println("Examined move", move.asString(), "with heuristic", heuristicValue, "maximizing layer:", maximizing)
-		}
-	}
-
-	return
-
-}*/
-
 func handleTurn(board boardstate, color Color) (resultingBoard boardstate) {
 
 	var colorName = "BLACK"
@@ -429,7 +370,6 @@ endTurn:
 		}
 
 		if isAI {
-			//Todo: AI player
 			//Run minimax for each move the current player can make. Once it is complete, take the best one.
 			_, chosenBoard, totalMovesExamined := minimax(board, 4, true, color, -1000000, 1000000)
 			fmt.Println("Total moves examined:", totalMovesExamined)
@@ -438,22 +378,18 @@ endTurn:
 			break endTurn
 		} else {
 			//Human player
-			//Todo: Policy. usercontrolled, random, first, minimax
-			//maxOption := len(resultingStates) - 1
-			//if maxOption > -1 {
-			//	resultingBoard = resultingStates[rand.Intn(maxOption)]
-			//}
-			//break endTurn
-			//Handle any moves
 
+			//Handle any moves
 			for moveIndex, move := range possibleMoves {
 				/// Check if the user has input the move we are currently testing
 				if input == move.asString() || input == move.invertedString() {
 					// We have found the move the player made, so we set the state of the board, and exit the loop.
 					resultingBoard = resultingStates[moveIndex]
 					if debugMode {
-						//Todo: pretty-print, prevent color from being printed
-						fmt.Printf("Possible moves: %v\n", possibleMoves[0:moveIndex])
+						fmt.Printf("Moves which could have been made: \n")
+						for _, move := range possibleMoves {
+							fmt.Println(move.asString())
+						}
 					}
 					break endTurn
 				}
@@ -470,8 +406,6 @@ endTurn:
 }
 
 func main() {
-	//Todo: When initializing, print rules
-	fmt.Println("")
 
 	board := initialState()
 	currentPlayer := BLACK

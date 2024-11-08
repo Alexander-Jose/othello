@@ -270,8 +270,15 @@ func minimax(board boardstate, depth int, maximize bool, maximizingPlayer Color)
 	statesExamined = 1
 	//We default to no move. If this is actually used, we are either in the base case, where it does not matter, or we must forfeit
 	chosenBoard = board
+
+	currentPlayer := maximizingPlayer
+	if !maximize {
+		currentPlayer = getOpponent(maximizingPlayer)
+	}
+	possibleMoves, resultingBoards := getPossibleMoves(board, currentPlayer)
+
 	//Base case
-	if depth == 0 {
+	if depth == 0 || len(possibleMoves) == 0 {
 		whiteScore, blackScore := getScore(board, true)
 		heuristicValue = (whiteScore - blackScore)
 		//If player is black, we want to optimize for black score instead
@@ -280,11 +287,6 @@ func minimax(board boardstate, depth int, maximize bool, maximizingPlayer Color)
 		}
 		return
 	}
-	currentPlayer := maximizingPlayer
-	if !maximize {
-		currentPlayer = getOpponent(maximizingPlayer)
-	}
-	possibleMoves, resultingBoards := getPossibleMoves(board, currentPlayer)
 
 	heuristicValue = 10000000000
 	if maximize {

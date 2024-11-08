@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 )
 
 // A way to represent the player without using magic numbers. Can be used to keep track of the current player.
@@ -281,9 +282,12 @@ func minimax(board boardstate, depth int, maximize bool, maximizingPlayer Color,
 	}
 
 	for moveIndex, move := range possibleMoves {
+		if debugMode {
+			fmt.Println(strings.Repeat("	", maxDepth-depth), "Depth:", depth, "Considering move", move.asString(), "Maximizing:", maximize)
+		}
 		possibleHeuristic, _, moveStatesExamined := minimax(resultingBoards[moveIndex], depth-1, !maximize, maximizingPlayer, alpha, beta)
 		if debugMode {
-			fmt.Println("Depth:", depth, "Considering move", move.asString(), "with heuristic of ", possibleHeuristic)
+			fmt.Println(strings.Repeat("	", maxDepth-depth), "Move", move.asString(), "has a heuristic of", possibleHeuristic)
 		}
 		statesExamined += moveStatesExamined
 		if maximize {
@@ -367,7 +371,7 @@ endTurn:
 			fmt.Println("Current max depth:", maxDepth)
 			//Invert the current value, print the result to the user, and start from the top.
 			fmt.Println("Type an integer for a new max depth")
-			fmt.Scanf("%d", &maxDepth)
+			fmt.Scanf("%d\n", &maxDepth)
 			fmt.Println("New max depth:", maxDepth)
 			continue
 		default:

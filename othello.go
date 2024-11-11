@@ -153,7 +153,7 @@ func getStateFromMove(currentMove Move, initialState boardstate) (newState board
 
 		// We loop until the current location values exceed the size of the array, which is the worst case. If they do, we know the direction does not have flippable tiles.
 		// This loop should usually terminate early, however, either by encountering a blank spot, or a tile of the same color as the color of the tile placed.
-		for (currentRow >= 0 && currentRow < byte(len(initialState))) && (currentColumn >= 0 && currentColumn < byte(len(initialState[0]))) {
+		for (currentRow < byte(len(initialState))) && (currentColumn < byte(len(initialState[0]))) {
 
 			//Deal with the tile we hit
 			if newState[currentRow][currentColumn] == BLANK {
@@ -264,6 +264,10 @@ func minimax(board boardstate, depth int, maximize bool, maximizingPlayer Color,
 		currentPlayer = getOpponent(maximizingPlayer)
 	}
 	possibleMoves, resultingBoards := getPossibleMoves(board, currentPlayer)
+
+	if debugMode {
+		displayBoardState(board)
+	}
 
 	//Base case
 	if depth == 0 || len(possibleMoves) == 0 {
